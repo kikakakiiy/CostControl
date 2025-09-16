@@ -1,0 +1,437 @@
+﻿@model IEnumerable<CostControl.Models.Project>
+
+@{
+    ViewData["Title"] = "Dashboard";
+    var projectNames = ViewBag.ProjectNames as List<string>;
+    var selectedProject = ViewBag.SelectedProject as string;
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+    html, body {
+        height: 100%;
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+        background-color: #f8f9fa;
+        padding-top: 100px; /* space untuk navbar fixed */
+    }
+
+    .container-fluid.custom-fluid {
+        flex: 1;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    /* Navbar */
+    .navbar-custom {
+        background-color: #ffffff;
+        border-bottom: 1px solid #ddd;
+        height: 100px;
+    }
+
+    .navbar-left .logo-img {
+        height: 80px;
+        object-fit: contain;
+        margin-top: 0px; 
+    }
+
+
+    .navbar-center {
+        display: flex;
+        flex-direction: column;
+        justify-content: center; /* tetap center vertical relatif ke navbar */
+        height: 100%;
+    }
+
+
+    .navbar-title {
+        font-weight: bold;
+        font-size: 2rem;
+        color: #003366;
+        line-height: 1; /* agar lebih rapat vertikal */
+        display: inline-block;
+        transform: translateY(-10%); /* geser sedikit ke atas */
+    }
+
+
+    .navbar-right span {
+        font-weight: bold;
+        color: #ff0000;
+        font-size: 1.0rem;
+    }
+
+    /* Project Title */
+    .project-title {
+        font-weight: bold;
+        text-align: center;
+        font-size: 1.25rem;
+        color: #003366; /* biru tua */
+    }
+
+    /* Chart container */
+    .chart-container {
+        width: 100%;
+        height: 300px;
+        min-height: 250px;
+        max-height: 400px;
+    }
+
+    .table-sm td, .table-sm th {
+        font-size: 0.6rem;
+        padding: 0.2rem 0.3rem !important;
+    }
+
+    .table td, .table th {
+        white-space: nowrap;
+    }
+
+    /* Footer */
+    .footer {
+        margin-top: auto;
+        background-color: #003366; /* biru tua */
+        color: white;
+        padding: 15px 20px;
+    }
+
+    .footer-address {
+        text-align: left;
+        max-width: 70%;
+    }
+
+    .social-icons a {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: #ffffff; 
+        margin-left: 10px;
+        padding: 5px;
+        box-sizing: border-box;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .social-icons a img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .social-icons a:hover {
+            transform: scale(1.15);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.25);
+        }
+
+    
+    .social-icons a {
+        box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+
+
+   
+    .footer-address i.fa-location-dot {
+        margin-top: 10px;
+    }
+
+    .footer .footer-social {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end; /* tetap di kanan */
+        margin-top: 10px; /* geser sedikit ke bawah */
+    }
+
+        .footer .footer-social .social-icons a {
+            margin-left: 10px;
+            margin-top: 5px; /*  jarak antar ikon */
+        }
+
+    /* "Safran Electronics & Defense" */
+    .footer-address strong {
+        font-size: 1.1rem; 
+        font-weight: bold;
+        display: inline-block;
+        margin-bottom: 5px;
+    }
+
+    /* Bold "Connect With Us" */
+    .footer-social .small {
+        font-weight: bold;
+        font-size: 0.95rem; 
+    }
+
+    /* Dropdown */
+    .custom-dropdown {
+        max-width: 300px;
+        font-size: 0.95rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 15px;
+        border: 1px solid #ced4da;
+        background-color: #fff;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+        .custom-dropdown:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+            outline: none;
+        }
+
+        .custom-dropdown option {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+            /* Hover untuk dropdown option (modern UI feel) */
+            .custom-dropdown option:hover {
+                background-color: #f1f1f1;
+            }
+
+</style>
+
+<!-- Navbar -->
+<nav class="navbar navbar-light navbar-custom fixed-top shadow-sm px-3">
+    <div class="container-fluid d-flex align-items-center">
+        <!-- Logo -->
+        <div class="navbar-left d-flex align-items-center">
+            <img src="@Url.Content("~/images/logo.png")" alt="Company Logo" class="logo-img">
+        </div>
+
+        <!-- Judul tengah -->
+        <div class="navbar-center flex-grow-1 text-center">
+            <h2 class="navbar-title mb-0">COST CONTROL</h2>
+        </div>
+
+        <!-- Last Updated kanan -->
+        <div class="navbar-right text-end">
+            Last updated <span>@DateTime.Now.ToString("MMMM, yyyy")</span>
+        </div>
+    </div>
+</nav>
+
+<!-- Konten -->
+<div class="container-fluid custom-fluid my-4">
+    <!-- Dropdown -->
+    <form method="get" asp-controller="Dashboard" asp-action="Index" class="mb-4">
+        <label class="form-label fw-semibold" for="projectSelect">Select Project:</label>
+        <select id="projectSelect" name="projectName" class="form-select custom-dropdown" onchange="this.form.submit()">
+            <option value="All" @(string.IsNullOrEmpty(selectedProject) || selectedProject == "All" ? "selected" : "")>
+                All Projects
+            </option>
+            @foreach (var name in projectNames)
+            {
+                <option value="@name" @(selectedProject == name ? "selected" : "")>@name</option>
+            }
+        </select>
+    </form>
+
+        <!-- Project Cards -->
+    @foreach (var group in Model.GroupBy(p => p.ProjectName))
+    {
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <h4 class="project-title">@group.Key</h4>
+                    </div>
+                </div>
+
+                <div class="row align-items-start">
+                    @* Expense *@
+                    @if (group.Any(g => g.Type == "Expense"))
+                    {
+                        <div class="col-2">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-sm small">
+                                    <thead class="table-dark text-center">
+                                        <tr><th></th><th>Budget</th><th>Expense</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>Budget</td><td>@($"${group.Where(g => g.Type == "Expense").Sum(x => x.Budget):N0}")</td><td>@($"${group.Where(g => g.Type == "Expense").Sum(x => x.Budget):N0}")</td></tr>
+                                        <tr><td>Total Actual + Forc.</td><td>-</td><td>@($"${group.Where(g => g.Type == "Expense").Sum(x => x.Actual + x.Forecast):N0}")</td></tr>
+                                        <tr><td>Actual</td><td>-</td><td>@($"${group.Where(g => g.Type == "Expense").Sum(x => x.Actual):N0}")</td></tr>
+                                        <tr><td>Forecast</td><td>-</td><td>@($"${group.Where(g => g.Type == "Expense").Sum(x => x.Forecast):N0}")</td></tr>
+                                        <tr><td>Overbudget</td><td>-</td><td class="@(group.Where(g => g.Type == "Expense").Sum(x => x.Overbudget) > 0 ? "text-danger fw-bold" : "text-success")">@($"${group.Where(g => g.Type == "Expense").Sum(x => x.Overbudget):N0}")</td></tr>
+                                        <tr><td>Remaining</td><td>-</td><td>@($"${group.Where(g => g.Type == "Expense").Sum(x => x.Remaining):N0}")</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="chart-container">
+                                <canvas id="@($"{group.Key.Replace(" ", "").Replace("&", "And")}_Expense")"></canvas>
+                            </div>
+                        </div>
+                    }
+
+                    @* Capex *@
+                    @if (group.Any(g => g.Type == "Capex"))
+                    {
+                        <div class="col-4">
+                            <div class="chart-container">
+                                <canvas id="@($"{group.Key.Replace(" ", "").Replace("&", "And")}_Capex")"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-sm small">
+                                    <thead class="table-dark text-center">
+                                        <tr><th></th><th>Budget</th><th>Spend</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>Budget</td><td>@($"${group.Where(g => g.Type == "Capex").Sum(x => x.Budget):N0}")</td><td>@($"${group.Where(g => g.Type == "Capex").Sum(x => x.Budget):N0}")</td></tr>
+                                        <tr><td>Total Actual + Forc.</td><td>-</td><td>@($"${group.Where(g => g.Type == "Capex").Sum(x => x.Actual + x.Forecast):N0}")</td></tr>
+                                        <tr><td>Actual</td><td>-</td><td>@($"${group.Where(g => g.Type == "Capex").Sum(x => x.Actual):N0}")</td></tr>
+                                        <tr><td>Forecast</td><td>-</td><td>@($"${group.Where(g => g.Type == "Capex").Sum(x => x.Forecast):N0}")</td></tr>
+                                        <tr><td>Overbudget</td><td>-</td><td class="@(group.Where(g => g.Type == "Capex").Sum(x => x.Overbudget) > 0 ? "text-danger fw-bold" : "text-success")">@($"${group.Where(g => g.Type == "Capex").Sum(x => x.Overbudget):N0}")</td></tr>
+                                        <tr><td>Remaining</td><td>-</td><td>@($"${group.Where(g => g.Type == "Capex").Sum(x => x.Remaining):N0}")</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container-fluid d-flex justify-content-between align-items-start flex-wrap">
+        <!-- Kiri: Address -->
+        <div class="footer-address small">
+            <strong>Safran Electronics & Defense</strong><br>
+
+            <!-- Address -->
+            <div class="d-flex">
+                <i class="fa-solid fa-location-dot me-2 align-self-start"></i>
+                <div>
+                    35 Soekarno Hatta Street, Cipadung Kidul, Panyileukan District, Bandung City<br>
+                    West Java 40614, Indonesia
+                </div>
+            </div>
+
+            <!-- Phone -->
+            <div class="d-flex mt-1">
+                <i class="fa-solid fa-phone me-2"></i>
+                <div>Telp: +(022) 86020100</div>
+            </div>
+        </div>
+
+        <!-- Kanan: Sosial Media -->
+        <div class="footer-social d-flex flex-column align-items-end">
+            <div class="small mb-2">Connect With Us</div>
+            <div class="social-icons d-flex">
+                <a href="https://web.facebook.com/GroupeSafran" target="_blank" class="facebook">
+                    <img src="@Url.Content("~/images/facebook.png")" alt="Facebook">
+                </a>
+                <a href="https://www.instagram.com/safran_group/" target="_blank" class="instagram">
+                    <img src="@Url.Content("~/images/instagram.png")" alt="Instagram">
+                </a>
+                <a href="https://x.com/SAFRAN" target="_blank" class="x">
+                    <img src="@Url.Content("~/images/twitter.png")" alt="X/Twitter">
+                </a>
+                <a href="https://www.linkedin.com/company/safran" target="_blank" class="linkedin">
+                    <img src="@Url.Content("~/images/linkedin.png")" alt="LinkedIn">
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Copyright -->
+    <div class="text-center small mt-2">
+        © 2025 Safran Electronics & Defense. All rights reserved.
+    </div>
+</footer>
+
+
+
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+    <script>
+        @foreach (var group in Model.GroupBy(p => p.ProjectName))
+        {
+                    foreach (var typeGroup in group.GroupBy(g => g.Type))
+                    {
+                                if (!typeGroup.Any()) continue;
+
+                                var chartId = group.Key.Replace(" ", "").Replace("&", "And") + "_" + typeGroup.Key;
+                                var labels = typeGroup.Key == "Capex" ? new[] { "Budget", "Spend" } : new[] { "Budget", "Expense" };
+
+                                var plannedBudget = typeGroup.Sum(p => p.Budget);
+                                var plannedOverbudget = typeGroup.Sum(p => p.Overbudget ?? 0);
+                                var actualSum = typeGroup.Sum(p => p.Actual);
+                                var forecastSum = typeGroup.Sum(p => p.Forecast);
+                                var remainingSum = typeGroup.Sum(p => p.Remaining ?? 0);
+
+                                if (plannedBudget > 0 || actualSum > 0 || forecastSum > 0)
+                                {
+                                            @:new Chart(document.getElementById('@chartId').getContext('2d'), {
+                                            @:    type: 'bar',
+                                            @:    data: {
+                                            @:        labels: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(labels)),
+                                            @:        datasets: [
+                                            @:            // --- Kolom Budget (hanya 1 batang) ---
+                                            @:            { label: 'Budget', data: [@plannedBudget, null], backgroundColor: '#007C52', stack:'budget', barThickness: 100 },
+
+                                            @:            // --- Kolom Expense/Spend (stack semua di sini) ---
+                                            @:            { label: 'Actual', data: [null, @actualSum], backgroundColor: '#143A66', stack:'spend', barThickness: 100 },
+                                            @:            { label: 'Forecast', data: [null, @forecastSum], backgroundColor: '#cc7722', stack:'spend', barThickness: 100 },
+                                            @:            { label: 'Remaining', data: [null, @remainingSum], backgroundColor: '#000000', stack:'spend', barThickness: 100 },
+                                            @:            { label: 'Overbudget', data: [null, @plannedOverbudget], backgroundColor: '#9b111e', stack:'spend', barThickness: 100 }
+                                            @:        ]
+                                            @:    },
+                                            @:    options: {
+                                            @:        responsive: true,
+                                            @:        maintainAspectRatio: false,
+                                            @:        plugins: {
+                                            @:            legend: { display: true, position: 'bottom' },
+                                            @:            title: { display: true, text: '@group.Key - @typeGroup.Key', font: { size: 12 } },
+                                            @:            datalabels: {
+                                            @:                anchor: 'end',
+                                            @:                align: 'bottom',
+                                            @:                formatter: function(value) {
+                                            @:                    return value && value > 0 ? '$' + value.toLocaleString() : "";
+                                            @:                },
+                                            @:                color: '#FFFFFF',
+                                            @:                font: { size: 9, weight: 'bold' }
+                                            @:            }
+                                            @:        },
+                                            @:        scales: {
+                                            @:            x: {
+                                            @:                stacked: true,
+                                            @:                grid: { display: false }
+                                            @:            },
+                                            @:            y: {
+                                            @:                stacked: true,
+                                            @:                beginAtZero: true,
+                                            @:                suggestedMax: Math.max(
+                                            @:                    @plannedBudget,
+                                            @:                    @actualSum + @forecastSum + @remainingSum + @plannedOverbudget
+                                            @:                ),
+                                            @:                ticks: {
+                                            @:                    callback: function(value){ return '$' + value.toLocaleString(); },
+                                            @:                    font: { size: 10, weight:'bold' },
+                                            @:                    color:'#222'
+                                            @:                },
+                                            @:                grid: { display: false }
+                                            @:            }
+                                            @:        }
+                                            @:    },
+                                            @:    plugins: [ChartDataLabels]
+                                            @:});
+                                }
+                    }
+        }
+    </script>
+}
+
